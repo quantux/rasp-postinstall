@@ -26,11 +26,8 @@ DOCKER_COMPOSE_PATH="$DOCKER_COMPOSE_PATH"
 # Pause containers
 docker-compose -f $DOCKER_COMPOSE_PATH pause
 
-# Create backup folder
-mkdir -p $BACKUP_FOLDER
-
-# remove previous backups
-rm -rf $BACKUP_FOLDER/*
+# Create backup folder and guarantee folder is clear
+mkdir -p $BACKUP_FOLDER && rm -rf $BACKUP_FOLDER/*
 
 # Backup encrypted folder
 tar --exclude-from="./ignore-files" -czf - -C "$HOME" encrypted | gpg --symmetric --cipher-algo AES256 --passphrase "$ENCRYPTION_PASSWORD" --batch -o "$ENCRYPTED_FILE"
