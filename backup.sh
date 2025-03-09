@@ -39,8 +39,8 @@ docker-compose -f $DOCKER_COMPOSE_PATH unpause
 unset ENCRYPTION_PASSWORD
 
 # Backup to Cloud Storage
-docker exec rclone rclone move --progress $ENCRYPTED_FILE $GDRIVE_PATH
+docker exec rclone rclone move --progress $ENCRYPTED_FILE "$GDRIVE_PATH"
 echo "Backup concluído!"
 
 # Excluindo arquivos antigos...
-docker exec rclone rclone delete --max-age $((FILES_TO_KEEP * 7))d $GDRIVE_PATH
+docker exec rclone rclone delete --max-age $((FILES_TO_KEEP * 7))d "$GDRIVE_PATH"
