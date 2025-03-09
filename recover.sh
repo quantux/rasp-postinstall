@@ -9,8 +9,8 @@ HOME=/home/$REGULAR_USER_NAME
 CRON_ROOT_PATH=/var/spool/cron/crontabs/root
 CRON_USER_PATH=/var/spool/cron/crontabs/$REGULAR_USER_NAME
 ENCRYPTED_FILE="encrypted.tar.gz.gpg"
-EXTRACTION_FOLDER=/tmp/extracted
-DOTENV=$EXTRACTION_FOLDER/.env
+EXTRACTION_FOLDER=/tmp/
+DOTENV=$EXTRACTION_FOLDER/encrypted/.env
 
 # Verifica se o arquivo de backup existe
 if [[ ! -f "$ENCRYPTED_FILE" ]]; then
@@ -19,7 +19,7 @@ if [[ ! -f "$ENCRYPTED_FILE" ]]; then
 fi
 
 # Recupera o arquivo de backup
-mkdir -p $EXTRACTION_FOLDER && gpg --batch --yes --decrypt "$ENCRYPTED_FILE" | tar -xzvf - -C "$EXTRACTION_FOLDER"
+gpg --batch --yes --decrypt "$ENCRYPTED_FILE" | tar -xzvf - -C "$EXTRACTION_FOLDER"
 
 # Verifica se o GPG retornou um erro (código de saída diferente de 0)
 if [ $? -ne 0 ]; then
@@ -87,7 +87,7 @@ mount "/dev/mapper/$LUKS_NAME" "$MOUNT_POINT"
 echo "Arquivo criptografado e montado em $MOUNT_POINT"
 
 # Move all unpacked files to $MOUNT_POINT
-mv $EXTRACTION_FOLDER/* $MOUNT_POINT
+mv $EXTRACTION_FOLDER/encrypted/* $MOUNT_POINT
 
 # Cria um link simbólico para o .zshrc
 ln -s $HOME/encrypted/.zshrc $HOME/.zshrc
