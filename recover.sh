@@ -15,7 +15,7 @@ DOTENV=$EXTRACTION_FOLDER/.env
 
 # Verifica se o arquivo encrypted existe
 if [[ ! -f "$ENCRYPTED_FILE" ]]; then
-    echo "Erro: O arquivo .env não foi encontrado."
+    echo "Erro: O arquivo $ENCRYPTED_FILE não foi encontrado."
     exit 1
 fi
 
