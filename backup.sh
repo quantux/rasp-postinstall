@@ -29,6 +29,9 @@ docker-compose -f $DOCKER_COMPOSE_PATH pause
 # Create backup folder
 mkdir -p $BACKUP_FOLDER
 
+# remove previous backups
+rm -rf $BACKUP_FOLDER/*
+
 # Backup encrypted folder
 tar --exclude-from="./ignore-files" -czf - -C "$HOME" encrypted | gpg --symmetric --cipher-algo AES256 --passphrase "$ENCRYPTION_PASSWORD" --batch -o "$ENCRYPTED_FILE"
 
@@ -43,4 +46,4 @@ docker exec rclone rclone move --progress $ENCRYPTED_FILE "$GDRIVE_PATH"
 echo "Backup concluído!"
 
 # Excluindo arquivos antigos...
-docker exec rclone rclone delete --max-age $((FILES_TO_KEEP * 7))d "$GDRIVE_PATH"
+docker exec rclone rclone delete --min-age $((FILES_TO_KEEP * 7))d "$GDRIVE_PATH"
