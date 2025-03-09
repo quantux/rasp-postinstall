@@ -21,6 +21,12 @@ fi
 # Recupera o arquivo de backup
 mkdir -p $EXTRACTION_FOLDER && gpg --batch --yes --decrypt "$ENCRYPTED_FILE" | tar -xzvf - -C "$EXTRACTION_FOLDER"
 
+# Verifica se o GPG retornou um erro (código de saída diferente de 0)
+if [ $? -ne 0 ]; then
+  echo "Erro: a senha pode estar errada ou ocorreu um problema durante a descriptografia."
+  exit 1
+fi
+
 # remove encrypted file
 rm -f $ENCRYPTED_FILE
 
