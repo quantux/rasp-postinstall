@@ -6,8 +6,9 @@
 # Get regular user and id
 REGULAR_USER_NAME="${SUDO_USER:-$LOGNAME}"
 HOME=/home/$REGULAR_USER_NAME
-DOTENV="$HOME/encrypted/.env"
-ENCRYPTED_FILE="$HOME/.encrypted.tar.gz.gpg"
+DOTENV=$HOME/encrypted/.env
+BACKUP_FOLDER=/tmp/.backups
+ENCRYPTED_FILE=$BACKUP_FOLDER/.encrypted.tar.gz.gpg
 FILES_TO_KEEP=10
 
 # Check if .env file exists
@@ -24,6 +25,9 @@ DOCKER_COMPOSE_PATH="$DOCKER_COMPOSE_PATH"
 
 # Pause containers
 docker-compose -f $DOCKER_COMPOSE_PATH pause
+
+# Create backup folder
+mkdir -p $BACKUP_FOLDER
 
 # Backup encrypted folder
 tar --exclude-from="./ignore-files" -czf - -C "$HOME" encrypted | gpg --symmetric --cipher-algo AES256 --passphrase "$ENCRYPTION_PASSWORD" --batch -o "$ENCRYPTED_FILE"

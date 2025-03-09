@@ -8,12 +8,13 @@ REGULAR_USER_NAME="${SUDO_USER:-$LOGNAME}"
 HOME=/home/$REGULAR_USER_NAME
 CRON_ROOT_PATH=/var/spool/cron/crontabs/root
 CRON_USER_PATH=/var/spool/cron/crontabs/$REGULAR_USER_NAME
-ENCRYPTED_FILE="$HOME/.encrypted.tar.gz.gpg"
+BACKUP_FOLDER=/tmp/.backups
+ENCRYPTED_FILE="$BACKUP_FOLDER/.encrypted.tar.gz.gpg"
 EXTRACTION_FOLDER=/tmp/extracted
 DOTENV=$EXTRACTION_FOLDER/.env
 
 # Recupera o arquivo de backup
-gpg --batch --yes --decrypt "$ENCRYPTED_FILE" | tar -xzvf - -C "$EXTRACTION_FOLDER"
+mkdir -p $EXTRACTION_FOLDER && gpg --batch --yes --decrypt "$ENCRYPTED_FILE" | tar -xzvf - -C "$EXTRACTION_FOLDER"
 
 # Verifica se o arquivo .env existe
 if [[ ! -f "$DOTENV" ]]; then
@@ -78,7 +79,7 @@ mount "/dev/mapper/$LUKS_NAME" "$MOUNT_POINT"
 echo "Arquivo criptografado e montado em $MOUNT_POINT"
 
 # Move all unpacked files to $MOUNT_POINT
-mv $EXTRACTION_FOLDER $MOUNT_POINT
+mv $EXTRACTION_FOLDER/* $MOUNT_POINT
 
 # Cria um link simbólico para o .zshrc
 ln -s $HOME/encrypted/.zshrc $HOME/.zshrc
