@@ -8,7 +8,7 @@ REGULAR_USER_NAME="${SUDO_USER:-$LOGNAME}"
 HOME=/home/$REGULAR_USER_NAME
 DOTENV=$HOME/encrypted/.env
 BACKUP_FOLDER=/tmp/.backups
-ENCRYPTED_FILE=$BACKUP_FOLDER/.encrypted.tar.gz.gpg
+ENCRYPTED_FILE=$BACKUP_FOLDER/encrypted.tar.gz.gpg
 FILES_TO_KEEP=10
 
 # Check if .env file exists

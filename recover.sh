@@ -8,14 +8,13 @@ REGULAR_USER_NAME="${SUDO_USER:-$LOGNAME}"
 HOME=/home/$REGULAR_USER_NAME
 CRON_ROOT_PATH=/var/spool/cron/crontabs/root
 CRON_USER_PATH=/var/spool/cron/crontabs/$REGULAR_USER_NAME
-BACKUP_FOLDER=/tmp/.backups
-ENCRYPTED_FILE="$BACKUP_FOLDER/.encrypted.tar.gz.gpg"
+ENCRYPTED_FILE="encrypted.tar.gz.gpg"
 EXTRACTION_FOLDER=/tmp/extracted
 DOTENV=$EXTRACTION_FOLDER/.env
 
-# Verifica se o arquivo encrypted existe
+# Verifica se o arquivo de backup existe
 if [[ ! -f "$ENCRYPTED_FILE" ]]; then
-    echo "Erro: O arquivo $ENCRYPTED_FILE não foi encontrado."
+    echo "Erro: O arquivo de backup não foi encontrado em $ENCRYPTED_FILE."
     exit 1
 fi
 
@@ -44,12 +43,6 @@ DROPBOX_OBSIDIAN_PATH="$DROPBOX_OBSIDIAN_PATH"
 user_do() {
     su - ${REGULAR_USER_NAME} -c "/bin/zsh --login -c '$1'"
 }
-
-# Verifica se o arquivo de backup existe
-if [[ ! -f "$ENCRYPTED_FILE" ]]; then
-    echo "Erro: O arquivo de backup não foi encontrado em $ENCRYPTED_FILE."
-    exit 1
-fi
 
 # Cria uma chave privada
 head -c 64 /dev/random > "$KEY_FILE"
