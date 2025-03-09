@@ -6,9 +6,8 @@
 # Get regular user and id
 REGULAR_USER_NAME="${SUDO_USER:-$LOGNAME}"
 HOME=/home/$REGULAR_USER_NAME
-DOTENV=$HOME/encrypted/.env
-GDRIVE_PATH="gdrive:/Áreas/Família/Matheus/Backups/Backups\ Raspberry\ Pi/"
-ENCRYPTED_FILE=$HOME/.encrypted.tar.gz.gpg
+DOTENV="$HOME/encrypted/.env"
+ENCRYPTED_FILE="$HOME/.encrypted.tar.gz.gpg"
 FILES_TO_KEEP=10
 
 # Check if .env file exists
@@ -20,15 +19,17 @@ fi
 # Load .env
 source $DOTENV
 ENCRYPTION_PASSWORD="$ENCRYPTION_PASSWORD"
+GDRIVE_PATH="$GDRIVE_PATH"
+DOCKER_COMPOSE_PATH="$DOCKER_COMPOSE_PATH"
 
 # Pause containers
-docker-compose -f $HOME/encrypted/docker-apps/docker-compose.yml pause
+docker-compose -f $DOCKER_COMPOSE_PATH pause
 
 # Backup encrypted folder
-tar --exclude-from="${HOME}/encrypted/workspace/rasp-postinstall/ignore-files" -czf - -C "$HOME" encrypted | gpg --symmetric --cipher-algo AES256 --passphrase "$ENCRYPTION_PASSWORD" --batch -o "$ENCRYPTED_FILE"
+tar --exclude-from="./ignore-files" -czf - -C "$HOME" encrypted | gpg --symmetric --cipher-algo AES256 --passphrase "$ENCRYPTION_PASSWORD" --batch -o "$ENCRYPTED_FILE"
 
 # Unpause containers
-docker-compose -f $HOME/encrypted/docker-apps/docker-compose.yml unpause
+docker-compose -f $DOCKER_COMPOSE_PATH unpause
 
 # Clear password from memory
 unset ENCRYPTION_PASSWORD
