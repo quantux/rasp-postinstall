@@ -13,6 +13,12 @@ ENCRYPTED_FILE="$BACKUP_FOLDER/.encrypted.tar.gz.gpg"
 EXTRACTION_FOLDER=/tmp/extracted
 DOTENV=$EXTRACTION_FOLDER/.env
 
+# Verifica se o arquivo encrypted existe
+if [[ ! -f "$ENCRYPTED_FILE" ]]; then
+    echo "Erro: O arquivo .env não foi encontrado."
+    exit 1
+fi
+
 # Recupera o arquivo de backup
 mkdir -p $EXTRACTION_FOLDER && gpg --batch --yes --decrypt "$ENCRYPTED_FILE" | tar -xzvf - -C "$EXTRACTION_FOLDER"
 
