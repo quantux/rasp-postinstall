@@ -86,8 +86,8 @@ mount "/dev/mapper/$LUKS_NAME" "$MOUNT_POINT"
 
 echo "Arquivo criptografado e montado em $MOUNT_POINT"
 
-# Move all unpacked files to $MOUNT_POINT
-mv $EXTRACTION_FOLDER/encrypted/* $MOUNT_POINT
+# Rsync all unpacked files to $MOUNT_POINT
+rsync -av --remove-source-files $EXTRACTION_FOLDER/encrypted/ $MOUNT_POINT/
 
 # Cria um link simbólico para o .zshrc
 ln -s $HOME/encrypted/.zshrc $HOME/.zshrc
@@ -95,6 +95,7 @@ ln -s $HOME/encrypted/.zshrc $HOME/.zshrc
 # Instala pacotes com apt-get
 show_message "Instalando pacotes"
 apt-get install -y \
+  python3-pip \
   docker.io \
   docker-compose \
   apt-utils \
@@ -136,6 +137,8 @@ echo "0 5 * * * docker exec pihole pihole enable" >> $CRON_USER_PATH
 echo "0 13 * * * docker exec pihole pihole disable" >> $CRON_USER_PATH
 echo "0 14 * * * docker exec pihole pihole enable" >> $CRON_USER_PATH
 echo "0 20 * * * docker exec pihole pihole disable" >> $CRON_USER_PATH
+
+# TODO: Configurar o iptables e deixar persistente
 
 # Configurações do Git
 user_do "git config --global user.name \"$GIT_NAME\""
