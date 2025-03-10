@@ -157,4 +157,7 @@ user_do "git config --global user.name \"$GIT_NAME\""
 user_do "git config --global user.email \"$GIT_EMAIL\""
 user_do "git config --global credential.helper \"store --file=$GIT_CREDENTIALS\""
 
+# Add user to docker group
+usermod -aG docker $REGULAR_USER_NAME
+
 docker-compose -f $DOCKER_COMPOSE_PATH up -d
