@@ -146,6 +146,14 @@ echo "0 13 * * * docker exec pihole pihole disable" >> $CRON_USER_PATH
 echo "0 14 * * * docker exec pihole pihole enable" >> $CRON_USER_PATH
 echo "0 20 * * * docker exec pihole pihole disable" >> $CRON_USER_PATH
 
+# rclone Obsidian copy
+rm -rf $HOME/encrypted/Syncthing/Obsidian
+rclone copy $DROPBOX_OBSIDIAN_PATH $HOME/encrypted/Syncthing/Obsidian
+
+# Backup wifi networks and disable it
+mv $HOME/encrypted/.preconfigured.nmconnection /etc/NetworkManager/system-connections/preconfigured.nmconnection
+echo "dtoverlay=disable-wifi" >> /boot/firmware/config.txt
+
 # iptables VPN-packets forwarding to allow internet access
 iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
 iptables -A FORWARD -i wg0 -o eth0 -j ACCEPT

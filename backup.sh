@@ -3,7 +3,7 @@
 # Checks for root privileges
 [ "$UID" -eq 0 ] || exec sudo bash "$0" "$@"
 
-# Get regular user and id
+# Vars
 REGULAR_USER_NAME="${SUDO_USER:-$LOGNAME}"
 HOME=/home/$REGULAR_USER_NAME
 DOTENV=$HOME/encrypted/.env
@@ -28,6 +28,9 @@ docker-compose -f $DOCKER_COMPOSE_PATH pause
 
 # Create backup folder and guarantee folder is clear
 mkdir -p $BACKUP_FOLDER && rm -rf $BACKUP_FOLDER/*
+
+# Backup wifi networks
+cat /etc/NetworkManager/system-connections/preconfigured.nmconnection > $HOME/encrypted/.preconfigured.nmconnection
 
 # Backup encrypted folder
 tar --exclude-from="./ignore-files" -czf - -C "$HOME" encrypted | gpg --symmetric --cipher-algo AES256 --passphrase "$ENCRYPTION_PASSWORD" --batch -o "$ENCRYPTED_FILE"
