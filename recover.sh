@@ -125,10 +125,18 @@ apt-get install -y \
   cryptsetup \
   fdisk \
   ecryptfs-utils \
-  gawk
+  gawk \
+  rclone
+
+# Copy github repos
+mkdir -p $HOME/workspace
+git clone https://github.com/quantux/convert_to_jellyfin $HOME/encrypted/workspace
+git clone https://github.com/quantux/rasp-postinstall $HOME/encrypted/workspace
+git clone https://github.com/quantux/rpi-check-connection $HOME/encrypted/workspace
+chown -r $REGULAR_USER_NAME:$REGULAR_USER_NAME $HOME/encrypted/workspace
 
 # Cron root
-echo "@reboot /home/pi/encrypted/workspace/rpi-check-connection/rpi-check-connection.sh" >> /var/spool/cron/crontabs/root
+echo "@reboot $HOME/encrypted/workspace/rpi-check-connection/rpi-check-connection.sh" >> /var/spool/cron/crontabs/root
 echo "0 5 * * * { apt-get update && apt-get upgrade -y && apt-get autoremove -y; } > /var/log/apt-auto-update.log 2>&1" >> /var/spool/cron/crontabs/root
 
 # Cron user
@@ -138,9 +146,13 @@ echo "0 13 * * * docker exec pihole pihole disable" >> $CRON_USER_PATH
 echo "0 14 * * * docker exec pihole pihole enable" >> $CRON_USER_PATH
 echo "0 20 * * * docker exec pihole pihole disable" >> $CRON_USER_PATH
 
-# TODO: Configurar o iptables e deixar persistente
+# iptables VPN-packets forwarding to allow internet access
+iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
+iptables -A FORWARD -i wg0 -o eth0 -j ACCEPT
+iptables -A FORWARD -i eth0 -o wg0 -j ACCEPT
+iptables-save
 
-# Configurações do Git
+# Configurações do git
 user_do "git config --global user.name \"$GIT_NAME\""
 user_do "git config --global user.email \"$GIT_EMAIL\""
 user_do "git config --global credential.helper \"store --file=$GIT_CREDENTIALS\""
