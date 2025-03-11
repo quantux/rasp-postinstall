@@ -122,8 +122,7 @@ mount "/dev/mapper/$LUKS_NAME" "$MOUNT_POINT"
 echo "Arquivo criptografado e montado em $MOUNT_POINT"
 
 # Create missing folders
-mkdir -p $HOME/Vídeos $HOME/workspace
-chown -R $REGULAR_USER_NAME:$REGULAR_USER_NAME $HOME/Vídeos $HOME/workspace
+mkdir -p $HOME/encrypted/Vídeos $HOME/encrypted/workspace
 
 # Rsync all unpacked files to $MOUNT_POINT
 rsync -av --progress $EXTRACTION_FOLDER/encrypted/ $MOUNT_POINT
@@ -135,7 +134,6 @@ ln -s $HOME/encrypted/.zshrc $HOME/.zshrc
 git clone https://github.com/quantux/convert_to_jellyfin $HOME/encrypted/workspace/convert_to_jellyfin
 git clone https://github.com/quantux/rasp-postinstall $HOME/encrypted/workspace/rasp_postinstall
 git clone https://github.com/quantux/rpi-check-connection $HOME/encrypted/workspace/rpi-check-connection
-chown -r $REGULAR_USER_NAME:$REGULAR_USER_NAME $HOME/encrypted/workspace
 
 # Backup wifi networks and disable it
 mv $HOME/encrypted/.preconfigured.nmconnection /etc/NetworkManager/system-connections/preconfigured.nmconnection
@@ -155,12 +153,15 @@ user_do "git config --global credential.helper \"store --file=$GIT_CREDENTIALS_P
 # Add user to docker group
 usermod -aG docker $REGULAR_USER_NAME
 
+# Prepare for rclone copy
+rm -rf $HOME/encrypted/Syncthing/Obsidian
+mkdir -p $HOME/encrypted/Syncthing/Obsidian
+
 # Run all containers
 docker-compose -f $DOCKER_COMPOSE_PATH up -d
 
-# rclone Obsidian copy
-rm -rf $HOME/encrypted/Syncthing/Obsidian
-docker exec rclone rclone copy $DROPBOX_OBSIDIAN_PATH $HOME/encrypted/Syncthing/Obsidian --progress
+# rclone copy
+docker exec rclone rclone copy $DROPBOX_OBSIDIAN_PATH /Backups/Obsidian --progress
 
 # Cron root
 echo "@reboot $HOME/encrypted/workspace/rpi-check-connection/rpi-check-connection.sh" >> $CRON_ROOT_PATH
@@ -179,3 +180,6 @@ chown $REGULAR_USER_NAME:$REGULAR_USER_NAME $CRON_USER_PATH
 
 # Change default shell
 chsh -s $(which zsh) $REGULAR_USER_NAME
+
+# Make encrypted folder pi-owned
+chown -R $REGULAR_USER_NAME:$REGULAR_USER_NAME $HOME/encrypted
