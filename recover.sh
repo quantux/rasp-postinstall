@@ -53,6 +53,42 @@ user_do() {
     su - ${REGULAR_USER_NAME} -c "/bin/zsh --login -c '$1'"
 }
 
+# Instala pacotes com apt-get
+apt-get update
+apt-get install -y \
+  python3-pip \
+  docker.io \
+  docker-compose \
+  apt-utils \
+  iptables-persistent \
+  build-essential \
+  git \
+  curl \
+  wget \
+  gpg \
+  ca-certificates \
+  gnupg \
+  zsh \
+  tmux \
+  vim \
+  tree \
+  speedtest-cli \
+  whois \
+  nmap \
+  traceroute \
+  jq \
+  f3 \
+  qemu-kvm \
+  qemu-user-static \
+  binfmt-support \
+  ffmpeg \
+  rename \
+  cryptsetup \
+  fdisk \
+  ecryptfs-utils \
+  gawk \
+  rclone
+
 # Cria uma chave privada
 head -c 64 /dev/random > "$KEY_FILE"
 chmod 600 "$KEY_FILE"
@@ -91,42 +127,6 @@ rsync -av --remove-source-files $EXTRACTION_FOLDER/encrypted/ $MOUNT_POINT/
 
 # Cria um link simbólico para o .zshrc
 ln -s $HOME/encrypted/.zshrc $HOME/.zshrc
-
-# Instala pacotes com apt-get
-show_message "Instalando pacotes"
-apt-get install -y \
-  python3-pip \
-  docker.io \
-  docker-compose \
-  apt-utils \
-  iptables-persistent \
-  build-essential \
-  git \
-  curl \
-  wget \
-  gpg \
-  ca-certificates \
-  gnupg \
-  zsh \
-  tmux \
-  vim \
-  tree \
-  speedtest-cli \
-  whois \
-  nmap \
-  traceroute \
-  jq \
-  f3 \
-  qemu-kvm \
-  qemu-user-static \
-  binfmt-support \
-  ffmpeg \
-  rename \
-  cryptsetup \
-  fdisk \
-  ecryptfs-utils \
-  gawk \
-  rclone
 
 # Copy github repos
 mkdir -p $HOME/workspace
