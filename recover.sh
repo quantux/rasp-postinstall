@@ -178,8 +178,9 @@ echo "0 20 * * * docker exec pihole pihole disable" >> $CRON_USER_PATH
 # Change cron user file owner
 chown $REGULAR_USER_NAME:$REGULAR_USER_NAME $CRON_USER_PATH
 
+# Make encrypted and ~/.zshrc folder pi-owned
+chown -R $REGULAR_USER_NAME:$REGULAR_USER_NAME $HOME/encrypted
+chown $REGULAR_USER_NAME:$REGULAR_USER_NAME $HOME/.zshrc
+
 # Change default shell
 chsh -s $(which zsh) $REGULAR_USER_NAME
-
-# Make encrypted folder pi-owned
-chown -R $REGULAR_USER_NAME:$REGULAR_USER_NAME $HOME/encrypted
