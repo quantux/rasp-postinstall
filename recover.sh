@@ -9,7 +9,7 @@ HOME=/home/$REGULAR_USER_NAME
 CRON_ROOT_PATH=/var/spool/cron/crontabs/root
 CRON_USER_PATH=/var/spool/cron/crontabs/$REGULAR_USER_NAME
 ENCRYPTED_FILE="encrypted.tar.gz.gpg"
-EXTRACTION_FOLDER=/tmp/
+EXTRACTION_FOLDER=/tmp
 DOTENV=$EXTRACTION_FOLDER/encrypted/.env
 
 # Verifica se o arquivo de backup existe
@@ -105,7 +105,7 @@ cryptsetup luksAddKey $LUKS_FILE $KEY_FILE
 
 # Adiciona as entradas no /etc/fstab e /etc/crypttab para montagem automática
 echo "/dev/mapper/$LUKS_NAME $MOUNT_POINT ext4 defaults,nofail 0 2" >> /etc/fstab
-echo "encrypted_volume   $HOME/.encrypted   /root/.encrypted.key   luks,noauto,nofail" >> /etc/crypttab > /dev/null
+echo "encrypted_volume   $HOME/.encrypted   /root/.encrypted.key   luks,noauto,nofail" >> /etc/crypttab
 
 # Abre o volume LUKS
 sudo cryptsetup luksOpen $LUKS_FILE $LUKS_NAME --key-file $KEY_FILE
@@ -126,7 +126,7 @@ mkdir -p $HOME/Vídeos $HOME/workspace
 chown -R $REGULAR_USER_NAME:$REGULAR_USER_NAME $HOME/Vídeos $HOME/workspace
 
 # Rsync all unpacked files to $MOUNT_POINT
-rsync -av --remove-source-files $EXTRACTION_FOLDER/encrypted/ $MOUNT_POINT/
+rsync -av --progress $EXTRACTION_FOLDER/encrypted/ $MOUNT_POINT
 
 # Cria um link simbólico para o .zshrc
 ln -s $HOME/encrypted/.zshrc $HOME/.zshrc
