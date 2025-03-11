@@ -137,25 +137,6 @@ git clone https://github.com/quantux/rasp-postinstall $HOME/encrypted/workspace/
 git clone https://github.com/quantux/rpi-check-connection $HOME/encrypted/workspace/rpi-check-connection
 chown -r $REGULAR_USER_NAME:$REGULAR_USER_NAME $HOME/encrypted/workspace
 
-# rclone Obsidian copy
-rm -rf $HOME/encrypted/Syncthing/Obsidian
-docker exec rclone rclone copy $DROPBOX_OBSIDIAN_PATH $HOME/encrypted/Syncthing/Obsidian --progress
-
-# Cron root
-echo "@reboot $HOME/encrypted/workspace/rpi-check-connection/rpi-check-connection.sh" >> $CRON_ROOT_PATH
-echo "0 5 * * * { apt-get update && apt-get upgrade -y && apt-get autoremove -y; } > /var/log/apt-auto-update.log 2>&1" >> $CRON_ROOT_PATH
-
-# Cron user
-echo "*/30 * * * * docker exec rclone rclone sync /Backups/Obsidian $DROPBOX_OBSIDIAN_PATH > /var/log/rclone-sync.log 2>&1" >> $CRON_USER_PATH
-echo "0 5 * * 0 /home/pi/encrypted/workspace/rasp_postinstall/backup.sh > /var/log/backup.sh.log 2>&1" >> $CRON_USER_PATH
-echo "0 5 * * * docker exec pihole pihole enable" >> $CRON_USER_PATH
-echo "0 13 * * * docker exec pihole pihole disable" >> $CRON_USER_PATH
-echo "0 14 * * * docker exec pihole pihole enable" >> $CRON_USER_PATH
-echo "0 20 * * * docker exec pihole pihole disable" >> $CRON_USER_PATH
-
-# Change cron user file owner
-chown $REGULAR_USER_NAME:$REGULAR_USER_NAME $CRON_USER_PATH
-
 # Backup wifi networks and disable it
 mv $HOME/encrypted/.preconfigured.nmconnection /etc/NetworkManager/system-connections/preconfigured.nmconnection
 echo "dtoverlay=disable-wifi" >> /boot/firmware/config.txt
@@ -174,7 +155,27 @@ user_do "git config --global credential.helper \"store --file=$GIT_CREDENTIALS_P
 # Add user to docker group
 usermod -aG docker $REGULAR_USER_NAME
 
+# Run all containers
 docker-compose -f $DOCKER_COMPOSE_PATH up -d
+
+# rclone Obsidian copy
+rm -rf $HOME/encrypted/Syncthing/Obsidian
+docker exec rclone rclone copy $DROPBOX_OBSIDIAN_PATH $HOME/encrypted/Syncthing/Obsidian --progress
+
+# Cron root
+echo "@reboot $HOME/encrypted/workspace/rpi-check-connection/rpi-check-connection.sh" >> $CRON_ROOT_PATH
+echo "0 5 * * * { apt-get update && apt-get upgrade -y && apt-get autoremove -y; } > /var/log/apt-auto-update.log 2>&1" >> $CRON_ROOT_PATH
+
+# Cron user
+echo "*/30 * * * * docker exec rclone rclone sync /Backups/Obsidian $DROPBOX_OBSIDIAN_PATH > /var/log/rclone-sync.log 2>&1" >> $CRON_USER_PATH
+echo "0 5 * * 0 /home/pi/encrypted/workspace/rasp_postinstall/backup.sh > /var/log/backup.sh.log 2>&1" >> $CRON_USER_PATH
+echo "0 5 * * * docker exec pihole pihole enable" >> $CRON_USER_PATH
+echo "0 13 * * * docker exec pihole pihole disable" >> $CRON_USER_PATH
+echo "0 14 * * * docker exec pihole pihole enable" >> $CRON_USER_PATH
+echo "0 20 * * * docker exec pihole pihole disable" >> $CRON_USER_PATH
+
+# Change cron user file owner
+chown $REGULAR_USER_NAME:$REGULAR_USER_NAME $CRON_USER_PATH
 
 # Change default shell
 chsh -s $(which zsh) $REGULAR_USER_NAME
