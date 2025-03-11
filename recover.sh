@@ -86,8 +86,7 @@ apt-get install -y \
   cryptsetup \
   fdisk \
   ecryptfs-utils \
-  gawk \
-  rclone
+  gawk
 
 # Cria uma chave privada
 head -c 64 /dev/random > "$KEY_FILE"
@@ -122,6 +121,10 @@ mount "/dev/mapper/$LUKS_NAME" "$MOUNT_POINT"
 
 echo "Arquivo criptografado e montado em $MOUNT_POINT"
 
+# Create missing folders
+mkdir -p $HOME/Vídeos $HOME/workspace
+chown -R $REGULAR_USER_NAME:$REGULAR_USER_NAME $HOME/Vídeos $HOME/workspace
+
 # Rsync all unpacked files to $MOUNT_POINT
 rsync -av --remove-source-files $EXTRACTION_FOLDER/encrypted/ $MOUNT_POINT/
 
@@ -129,26 +132,25 @@ rsync -av --remove-source-files $EXTRACTION_FOLDER/encrypted/ $MOUNT_POINT/
 ln -s $HOME/encrypted/.zshrc $HOME/.zshrc
 
 # Copy github repos
-mkdir -p $HOME/workspace
-git clone https://github.com/quantux/convert_to_jellyfin $HOME/encrypted/workspace
-git clone https://github.com/quantux/rasp-postinstall $HOME/encrypted/workspace
-git clone https://github.com/quantux/rpi-check-connection $HOME/encrypted/workspace
+git clone https://github.com/quantux/convert_to_jellyfin $HOME/encrypted/workspace/convert_to_jellyfin
+git clone https://github.com/quantux/rasp-postinstall $HOME/encrypted/workspace/rasp_postinstall
+git clone https://github.com/quantux/rpi-check-connection $HOME/encrypted/workspace/rpi-check-connection
 chown -r $REGULAR_USER_NAME:$REGULAR_USER_NAME $HOME/encrypted/workspace
+
+# rclone Obsidian copy
+rm -rf $HOME/encrypted/Syncthing/Obsidian
+docker exec rclone rclone copy $DROPBOX_OBSIDIAN_PATH $HOME/encrypted/Syncthing/Obsidian --progress
 
 # Cron root
 echo "@reboot $HOME/encrypted/workspace/rpi-check-connection/rpi-check-connection.sh" >> /var/spool/cron/crontabs/root
 echo "0 5 * * * { apt-get update && apt-get upgrade -y && apt-get autoremove -y; } > /var/log/apt-auto-update.log 2>&1" >> /var/spool/cron/crontabs/root
 
 # Cron user
-echo "*/30 * * * * docker-compose -f $DOCKER_COMPOSE_PATH run --rm rclone sync /Backups/Obsidian $DROPBOX_OBSIDIAN_PATH > /var/log/rclone-sync.log 2>&1" >> $CRON_USER_PATH
+echo "*/30 * * * * docker exec rclone rclone sync /Backups/Obsidian $DROPBOX_OBSIDIAN_PATH > /var/log/rclone-sync.log 2>&1" >> $CRON_USER_PATH
 echo "0 5 * * * docker exec pihole pihole enable" >> $CRON_USER_PATH
 echo "0 13 * * * docker exec pihole pihole disable" >> $CRON_USER_PATH
 echo "0 14 * * * docker exec pihole pihole enable" >> $CRON_USER_PATH
 echo "0 20 * * * docker exec pihole pihole disable" >> $CRON_USER_PATH
-
-# rclone Obsidian copy
-rm -rf $HOME/encrypted/Syncthing/Obsidian
-rclone copy $DROPBOX_OBSIDIAN_PATH $HOME/encrypted/Syncthing/Obsidian
 
 # Backup wifi networks and disable it
 mv $HOME/encrypted/.preconfigured.nmconnection /etc/NetworkManager/system-connections/preconfigured.nmconnection
@@ -163,9 +165,11 @@ iptables-save
 # Configurações do git
 user_do "git config --global user.name \"$GIT_NAME\""
 user_do "git config --global user.email \"$GIT_EMAIL\""
-user_do "git config --global credential.helper \"store --file=$GIT_CREDENTIALS\""
+user_do "git config --global credential.helper \"store --file=$GIT_CREDENTIALS_PATH\""
 
 # Add user to docker group
 usermod -aG docker $REGULAR_USER_NAME
 
 docker-compose -f $DOCKER_COMPOSE_PATH up -d
+
+chsh -s $(which zsh)
