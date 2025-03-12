@@ -100,12 +100,9 @@ dd if=/dev/zero of="$LUKS_FILE" bs=1 count=0 seek="$FILE_SIZE"
 # Formatação LUKS
 cryptsetup luksFormat "$LUKS_FILE" "$KEY_FILE"
 
-# Adiciona uma chave para montagem automática
-cryptsetup luksAddKey $LUKS_FILE $KEY_FILE
-
 # Adiciona as entradas no /etc/fstab e /etc/crypttab para montagem automática
 echo "/dev/mapper/$LUKS_NAME $MOUNT_POINT ext4 defaults,nofail 0 2" >> /etc/fstab
-echo "encrypted_volume   $HOME/.encrypted   /root/.encrypted.key   luks,noauto,nofail" >> /etc/crypttab
+echo "encrypted_volume   $HOME/.encrypted   $KEY_FILE   luks,noauto,nofail" >> /etc/crypttab
 
 # Abre o volume LUKS
 sudo cryptsetup luksOpen $LUKS_FILE $LUKS_NAME --key-file $KEY_FILE
@@ -119,21 +116,19 @@ mkdir -p "$MOUNT_POINT"
 # Monta o volume
 mount "/dev/mapper/$LUKS_NAME" "$MOUNT_POINT"
 
-echo "Arquivo criptografado e montado em $MOUNT_POINT"
-
 # Create missing folders
-mkdir -p $HOME/encrypted/Vídeos $HOME/encrypted/workspace
+mkdir -p $MOUNT_POINT/Vídeos $MOUNT_POINT/workspace
 
 # Rsync all unpacked files to $MOUNT_POINT
 rsync -av --progress $EXTRACTION_FOLDER/encrypted/ $MOUNT_POINT
 
 # Cria um link simbólico para o .zshrc
-ln -s $HOME/encrypted/.zshrc $HOME/.zshrc
+ln -s $MOUNT_POINT/.zshrc $HOME/.zshrc
 
 # Copy github repos
-git clone https://github.com/quantux/convert_to_jellyfin $HOME/encrypted/workspace/convert_to_jellyfin
-git clone https://github.com/quantux/rasp-postinstall $HOME/encrypted/workspace/rasp_postinstall
-git clone https://github.com/quantux/rpi-check-connection $HOME/encrypted/workspace/rpi-check-connection
+git clone https://github.com/quantux/convert_to_jellyfin $MOUNT_POINT/workspace/convert_to_jellyfin
+git clone https://github.com/quantux/rasp-postinstall $MOUNT_POINT/workspace/rasp_postinstall
+git clone https://github.com/quantux/rpi-check-connection $MOUNT_POINT/workspace/rpi-check-connection
 
 # Backup wifi networks and disable it
 mv $HOME/encrypted/.preconfigured.nmconnection /etc/NetworkManager/system-connections/preconfigured.nmconnection
@@ -154,8 +149,8 @@ user_do "git config --global credential.helper \"store --file=$GIT_CREDENTIALS_P
 usermod -aG docker $REGULAR_USER_NAME
 
 # Prepare for rclone copy
-rm -rf $HOME/encrypted/Syncthing/Obsidian
-mkdir -p $HOME/encrypted/Syncthing/Obsidian
+rm -rf $MOUNT_POINT/Syncthing/Obsidian
+mkdir -p $MOUNT_POINT/Syncthing/Obsidian
 
 # Run all containers
 docker-compose -f $DOCKER_COMPOSE_PATH up -d
@@ -164,7 +159,7 @@ docker-compose -f $DOCKER_COMPOSE_PATH up -d
 docker exec rclone rclone copy $DROPBOX_OBSIDIAN_PATH /Backups/Obsidian --progress
 
 # Cron root
-echo "@reboot $HOME/encrypted/workspace/rpi-check-connection/rpi-check-connection.sh" >> $CRON_ROOT_PATH
+echo "@reboot $MOUNT_POINT/workspace/rpi-check-connection/rpi-check-connection.sh" >> $CRON_ROOT_PATH
 echo "0 5 * * * { apt-get update && apt-get upgrade -y && apt-get autoremove -y; } > /var/log/apt-auto-update.log 2>&1" >> $CRON_ROOT_PATH
 
 # Cron user
@@ -179,7 +174,7 @@ echo "0 20 * * * docker exec pihole pihole disable" >> $CRON_USER_PATH
 chown $REGULAR_USER_NAME:$REGULAR_USER_NAME $CRON_USER_PATH
 
 # Make encrypted and ~/.zshrc folder pi-owned
-chown -R $REGULAR_USER_NAME:$REGULAR_USER_NAME $HOME/encrypted
+chown -R $REGULAR_USER_NAME:$REGULAR_USER_NAME $MOUNT_POINT
 chown $REGULAR_USER_NAME:$REGULAR_USER_NAME $HOME/.zshrc
 
 # Change default shell
