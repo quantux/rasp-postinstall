@@ -126,9 +126,9 @@ rsync -av --progress $EXTRACTION_FOLDER/encrypted/ $MOUNT_POINT
 ln -s $MOUNT_POINT/.zshrc $HOME/.zshrc
 
 # Copy github repos
-git clone https://github.com/quantux/convert_to_jellyfin $MOUNT_POINT/workspace/convert_to_jellyfin
-git clone https://github.com/quantux/rasp-postinstall $MOUNT_POINT/workspace/rasp_postinstall
-git clone https://github.com/quantux/rpi-check-connection $MOUNT_POINT/workspace/rpi-check-connection
+git clone https://github.com/quantux/convert_to_jellyfin $HOME/workspace/convert_to_jellyfin
+git clone https://github.com/quantux/rasp-postinstall $HOME/workspace/rasp_postinstall
+git clone https://github.com/quantux/rpi-check-connection $HOME/workspace/rpi-check-connection
 
 # Backup wifi networks and disable it
 mv $HOME/encrypted/.preconfigured.nmconnection /etc/NetworkManager/system-connections/preconfigured.nmconnection
@@ -162,19 +162,21 @@ docker-compose -f $DOCKER_COMPOSE_PATH up -d
 docker exec rclone rclone copy $DROPBOX_OBSIDIAN_PATH /Backups/Obsidian --progress
 
 # Cron root
-echo "@reboot $MOUNT_POINT/workspace/rpi-check-connection/rpi-check-connection.sh" >> $CRON_ROOT_PATH
+echo "@reboot $HOME/workspace/rpi-check-connection/rpi-check-connection.sh" >> $CRON_ROOT_PATH
 echo "0 5 * * * { apt-get update && apt-get upgrade -y && apt-get autoremove -y; } > /var/log/apt-auto-update.log 2>&1" >> $CRON_ROOT_PATH
 
 # Cron user
 echo "*/30 * * * * docker exec rclone rclone sync /Backups/Obsidian $DROPBOX_OBSIDIAN_PATH > /var/log/rclone-sync.log 2>&1" >> $CRON_USER_PATH
-echo "0 5 * * 0 /home/pi/encrypted/workspace/rasp_postinstall/backup.sh > /var/log/backup.sh.log 2>&1" >> $CRON_USER_PATH
+echo "0 5 * * 0 $HOME/workspace/rasp_postinstall/backup.sh > /var/log/backup.sh.log 2>&1" >> $CRON_USER_PATH
 echo "0 5 * * * docker exec pihole pihole enable" >> $CRON_USER_PATH
 echo "0 13 * * * docker exec pihole pihole disable" >> $CRON_USER_PATH
 echo "0 14 * * * docker exec pihole pihole enable" >> $CRON_USER_PATH
 echo "0 20 * * * docker exec pihole pihole disable" >> $CRON_USER_PATH
 
-# Change cron user file owner
-chown $REGULAR_USER_NAME:$REGULAR_USER_NAME $CRON_USER_PATH
+# Change cron user file permissions and owner
+chown $REGULAR_USER_NAME:crontab $CRON_USER_PATH
+chown root:crontab $CRON_ROOT_PATH
+chmod 600 $CRON_ROOT_PATH $CRON_USER_PATH
 
 # Make encrypted and ~/.zshrc folder pi-owned
 chown -R $REGULAR_USER_NAME:$REGULAR_USER_NAME $MOUNT_POINT
