@@ -86,7 +86,8 @@ apt-get install -y \
   cryptsetup \
   fdisk \
   ecryptfs-utils \
-  gawk
+  gawk \
+  kiwix-tools
 
 # Cria uma chave privada
 head -c 64 /dev/random > "$KEY_FILE"
