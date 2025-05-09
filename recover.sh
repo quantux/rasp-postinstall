@@ -164,11 +164,11 @@ docker exec rclone rclone copy $DROPBOX_OBSIDIAN_PATH /Backups/Obsidian --progre
 
 # Cron root
 echo "@reboot $HOME/workspace/rpi-check-connection/rpi-check-connection.sh" >> $CRON_ROOT_PATH
-echo "0 5 * * * { apt-get update && apt-get upgrade -y && apt-get autoremove -y; } > /var/log/apt-auto-update.log 2>&1" >> $CRON_ROOT_PATH
+echo "0 5 * * * { apt-get update && apt-get upgrade -y && apt-get autoremove -y; } > $MOUNT_POINT/logs/apt-auto-update.log 2>&1" >> $CRON_ROOT_PATH
 
 # Cron user
-echo "*/30 * * * * docker exec rclone rclone sync /Backups/Obsidian $DROPBOX_OBSIDIAN_PATH > /var/log/rclone-sync.log 2>&1" >> $CRON_USER_PATH
-echo "0 5 * * 0 $HOME/workspace/rasp_postinstall/backup.sh > /var/log/backup.sh.log 2>&1" >> $CRON_USER_PATH
+echo "*/30 * * * * docker exec rclone rclone sync /Backups/Obsidian $DROPBOX_OBSIDIAN_PATH > $MOUNT_POINT/logs/rclone-sync.log 2>&1" >> $CRON_USER_PATH
+echo "0 5 * * 0 $HOME/workspace/rasp_postinstall/backup.sh > $MOUNT_POINT/logs/backup.sh.log 2>&1" >> $CRON_USER_PATH
 echo "0 5 * * * docker exec pihole pihole enable" >> $CRON_USER_PATH
 echo "0 13 * * * docker exec pihole pihole disable" >> $CRON_USER_PATH
 echo "0 14 * * * docker exec pihole pihole enable" >> $CRON_USER_PATH

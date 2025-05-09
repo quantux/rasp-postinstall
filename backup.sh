@@ -7,7 +7,7 @@
 REGULAR_USER_NAME="${SUDO_USER:-$LOGNAME}"
 HOME=/home/$REGULAR_USER_NAME
 DOTENV=$HOME/encrypted/.env
-BACKUP_FOLDER=/tmp/.backups
+BACKUP_FOLDER=/tmp/
 ENCRYPTED_FILE="$BACKUP_FOLDER/encrypted-$(date +%d-%m-%Y).tar.gz.gpg"
 FILES_TO_KEEP=10
 
@@ -25,9 +25,6 @@ DOCKER_COMPOSE_PATH="$DOCKER_COMPOSE_PATH"
 
 # Pause containers
 docker-compose -f $DOCKER_COMPOSE_PATH pause
-
-# Create backup folder and guarantee folder is clear
-mkdir -p $BACKUP_FOLDER && rm -rf $BACKUP_FOLDER/*
 
 # Backup wifi networks
 cat /etc/NetworkManager/system-connections/preconfigured.nmconnection > $HOME/encrypted/.preconfigured.nmconnection
