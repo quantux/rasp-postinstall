@@ -10,6 +10,7 @@ CRON_ROOT_PATH=/var/spool/cron/crontabs/root
 CRON_USER_PATH=/var/spool/cron/crontabs/$REGULAR_USER_NAME
 LUKS_FILE="$HOME/.encrypted"
 LUKS_NAME="encrypted_volume"
+MOUNT_POINT="$HOME/encrypted"
 
 echo -n "Caminho para a chave LUKS: "
 read LUKS_KEY_FOLDER
@@ -100,6 +101,12 @@ mkdir -p $MOUNT_POINT/Vídeos
 # Cria link simbólico
 ln -s "$MOUNT_POINT/.zshrc" "$HOME/.zshrc"
 
+# Restaura o backup
+restic restore latest \
+    --target / \
+    --tag mths \
+    --tag raspberry_pi
+
 # Verifica se o .env foi restaurado
 DOTENV="$MOUNT_POINT/.env"
 if [[ ! -f "$DOTENV" ]]; then
@@ -111,18 +118,11 @@ fi
 source "$DOTENV"
 export RESTIC_PASSWORD
 export RESTIC_REPOSITORY
-MOUNT_POINT="$MOUNT_POINT"
 GIT_NAME="$GIT_NAME"
 GIT_EMAIL="$GIT_EMAIL"
 GIT_CREDENTIALS_PATH="$GIT_CREDENTIALS_PATH"
 DOCKER_COMPOSE_PATH="$DOCKER_COMPOSE_PATH"
 DROPBOX_OBSIDIAN_PATH="$DROPBOX_OBSIDIAN_PATH"
-
-# Restaura o backup
-restic restore latest \
-    --target / \
-    --tag mths \
-    --tag raspberry_pi
 
 # Clona repositórios
 git clone https://github.com/quantux/convert_to_jellyfin $HOME/workspace/convert_to_jellyfin
