@@ -29,6 +29,8 @@ echo ">>>"
 RCLONE_CONFIG=$(cat)
 export RCLONE_CONFIG
 
+clear
+
 # Função para executar comandos como o usuário regular
 user_do() {
     su - ${REGULAR_USER_NAME} -c "/bin/zsh --login -c '$1'"
