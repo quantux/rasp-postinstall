@@ -9,7 +9,7 @@ HOME=/home/$REGULAR_USER_NAME
 CRON_ROOT_PATH=/var/spool/cron/crontabs/root
 CRON_USER_PATH=/var/spool/cron/crontabs/$REGULAR_USER_NAME
 
-echo "Caminho para a chave LUKS: "
+echo -n "Caminho para a chave LUKS: "
 read LUKS_PATH
 
 # Rejeita se não for um diretório existente
@@ -25,7 +25,6 @@ clear
 echo "Por favor, cole o conteúdo completo do seu rclone.conf abaixo."
 echo "Quando terminar, pressione Ctrl+D para continuar."
 echo ">>>"
-echo
 
 RCLONE_CONFIG=$(cat)
 export RCLONE_CONFIG
