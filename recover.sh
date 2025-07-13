@@ -92,16 +92,28 @@ mount "/dev/mapper/$LUKS_NAME" "$MOUNT_POINT"
 mkdir -p $MOUNT_POINT/Vídeos
 mkdir -p $RCLONE_CONFIG_PATH
 
-echo "Por favor, cole o conteúdo completo do seu rclone.conf abaixo."
+echo "Cole o conteúdo completo do seu rclone.conf abaixo."
 echo "Quando terminar, pressione Ctrl+D para continuar."
 echo ">>>"
 
 cat > "$RCLONE_CONFIG_FILE"
 export RCLONE_CONFIG="$RCLONE_CONFIG_FILE"
 
-restic snapshots
+clear
 
+echo -n "RESTIC_PASSWORD: "
+read RESTIC_PASSWORD
+export RESTIC_PASSWOR="$RESTIC_PASSWORD"
+
+clear
+
+echo -n "RESTIC_REPOSITORY: "
+read RESTIC_REPOSITORY
+export RESTIC_REPOSITORY="$RESTIC_REPOSITORY"
+
+restic snapshots
 exit 1
+
 clear
 
 # Restaura o backup
@@ -123,8 +135,6 @@ fi
 
 # Carrega as variáveis do .env
 source "$DOTENV"
-export RESTIC_PASSWORD
-export RESTIC_REPOSITORY
 GIT_NAME="$GIT_NAME"
 GIT_EMAIL="$GIT_EMAIL"
 GIT_CREDENTIALS_PATH="$GIT_CREDENTIALS_PATH"
