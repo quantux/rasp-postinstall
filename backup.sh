@@ -7,11 +7,9 @@
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REGULAR_USER_NAME="${SUDO_USER:-$LOGNAME}"
 HOME=/home/$REGULAR_USER_NAME
-DOTENV=$HOME/encrypted/.env
-BACKUP_FOLDER=/tmp/.backups
-ENCRYPTED_FILE="$BACKUP_FOLDER/encrypted-$(date +%d-%m-%Y).tar.gz.gpg"
+DOTENV="$HOME/encrypted/.env"
 IGNORE_FILE="$SCRIPT_DIR/ignore-files"
-FILES_TO_KEEP=10
+FILES_TO_KEEP=5
 
 # Check if .env file exists
 if [[ ! -f "$DOTENV" ]]; then
@@ -20,32 +18,36 @@ if [[ ! -f "$DOTENV" ]]; then
 fi
 
 # Load .env
-source $DOTENV
-ENCRYPTION_PASSWORD="$ENCRYPTION_PASSWORD"
-GDRIVE_PATH="$GDRIVE_PATH"
+source "$DOTENV"
+export RESTIC_PASSWORD
+export RESTIC_REPOSITORY
 DOCKER_COMPOSE_PATH="$DOCKER_COMPOSE_PATH"
 
 # Pause containers
-docker-compose -f $DOCKER_COMPOSE_PATH pause
-
-# Create backup folder and guarantee folder is clear
-mkdir -p $BACKUP_FOLDER && rm -rf $BACKUP_FOLDER/*
+docker-compose -f "$DOCKER_COMPOSE_PATH" pause
 
 # Backup wifi networks
-cat /etc/NetworkManager/system-connections/preconfigured.nmconnection > $HOME/encrypted/.preconfigured.nmconnection
+cat /etc/NetworkManager/system-connections/preconfigured.nmconnection > "$HOME/encrypted/.preconfigured.nmconnection"
 
-# Backup encrypted folder
-tar --exclude-from="$IGNORE_FILE" -czf - -C "$HOME" encrypted | gpg --symmetric --cipher-algo AES256 --passphrase "$ENCRYPTION_PASSWORD" --batch -o "$ENCRYPTED_FILE"
+# Executa backup com Restic
+restic backup "$HOME/encrypted" \
+    --exclude-file="$IGNORE_FILE" \
+    --tag mths \
+    --tag raspberry_pi
 
 # Unpause containers
-docker-compose -f $DOCKER_COMPOSE_PATH unpause
+docker-compose -f "$DOCKER_COMPOSE_PATH" unpause
 
-# Clear password from memory
-unset ENCRYPTION_PASSWORD
+# Política de retenção
+restic forget \
+    --tag mths \
+    --tag raspberry_pi \
+    --keep-last \
+    "$FILES_TO_KEEP" \
+    --prune
 
-# Backup to Cloud Storage
-docker exec rclone rclone move --progress $ENCRYPTED_FILE "$GDRIVE_PATH"
-echo "Backup concluído!"
+# Limpa variáveis sensíveis
+unset RESTIC_PASSWORD
+unset RESTIC_REPOSITORY
 
-# Excluindo arquivos antigos...
-docker exec rclone rclone delete --min-age $((FILES_TO_KEEP * 7))d "$GDRIVE_PATH"
+echo "Backup com Restic concluído com sucesso!"
