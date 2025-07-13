@@ -11,6 +11,7 @@ CRON_USER_PATH=/var/spool/cron/crontabs/$REGULAR_USER_NAME
 LUKS_FILE="$HOME/.encrypted"
 LUKS_NAME="encrypted_volume"
 MOUNT_POINT="$HOME/encrypted"
+RCLONE_CONFIG_FILE="$MOUNT_POINT/.config/rclone/rclone.conf"
 
 echo -n "Caminho para a chave LUKS: "
 read LUKS_KEY_FOLDER
@@ -22,15 +23,6 @@ if [ ! -d "$LUKS_KEY_FOLDER" ]; then
 fi
 
 KEY_FILE="$LUKS_KEY_FOLDER/.enc"
-
-clear
-
-echo "Por favor, cole o conteúdo completo do seu rclone.conf abaixo."
-echo "Quando terminar, pressione Ctrl+D para continuar."
-echo ">>>"
-
-RCLONE_CONFIG=$(cat)
-export RCLONE_CONFIG
 
 clear
 
@@ -95,17 +87,30 @@ mkfs.ext4 "/dev/mapper/$LUKS_NAME"
 mkdir -p "$MOUNT_POINT"
 mount "/dev/mapper/$LUKS_NAME" "$MOUNT_POINT"
 
-# Cria pastas e copia arquivos
+# Cria pastas para containers docker
 mkdir -p $MOUNT_POINT/Vídeos
 
-# Cria link simbólico
-ln -s "$MOUNT_POINT/.zshrc" "$HOME/.zshrc"
+echo "Por favor, cole o conteúdo completo do seu rclone.conf abaixo."
+echo "Quando terminar, pressione Ctrl+D para continuar."
+echo ">>>"
+
+cat > "$RCLONE_CONFIG_FILE"
+export RCLONE_CONFIG="$RCLONE_CONFIG_FILE"
+
+restic snapshots
+
+exit 1
+clear
 
 # Restaura o backup
 restic restore latest \
     --target / \
     --tag mths \
     --tag raspberry_pi
+
+# Cria links simbólicos
+ln -s "$MOUNT_POINT/.zshrc" "$HOME/.zshrc"
+ln -s "$RCLONE_CONFIG_FILE" "$HOME/.config/rclone/rclone.conf"
 
 # Verifica se o .env foi restaurado
 DOTENV="$MOUNT_POINT/.env"
