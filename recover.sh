@@ -130,7 +130,8 @@ GIT_NAME="$GIT_NAME"
 GIT_EMAIL="$GIT_EMAIL"
 GIT_CREDENTIALS_PATH="$GIT_CREDENTIALS_PATH"
 DOCKER_COMPOSE_PATH="$DOCKER_COMPOSE_PATH"
-DROPBOX_OBSIDIAN_PATH="$DROPBOX_OBSIDIAN_PATH"
+RCLONE_DROPBOX_OBSIDIAN_PATH="$RCLONE_DROPBOX_OBSIDIAN_PATH"
+SYNCTHING_OBSIDIAN_PATH="$SYNCTHING_OBSIDIAN_PATH"
 
 # Clona repositórios
 git clone https://github.com/quantux/convert_to_jellyfin $HOME/workspace/convert_to_jellyfin
@@ -158,14 +159,14 @@ usermod -aG docker $REGULAR_USER_NAME
 # rclone
 rm -rf "$MOUNT_POINT/Syncthing/Obsidian"
 mkdir -p "$MOUNT_POINT/Syncthing/Obsidian"
+/usr/bin/rclone sync "$RCLONE_DROPBOX_OBSIDIAN_PATH" "$SYNCTHING_OBSIDIAN_PATH" --progress
 docker-compose -f "$DOCKER_COMPOSE_PATH" up -d
-docker exec rclone rclone copy "$DROPBOX_OBSIDIAN_PATH" /Backups/Obsidian --progress
 
 # Crontabs
 echo "@reboot $HOME/workspace/rpi-check-connection/rpi-check-connection.sh" >> $CRON_ROOT_PATH
 echo "0 5 * * * { apt-get update && apt-get upgrade -y && apt-get autoremove -y; } > $MOUNT_POINT/logs/apt-auto-update.log 2>&1" >> $CRON_ROOT_PATH
 
-echo "*/30 * * * * docker exec rclone rclone sync /Backups/Obsidian $DROPBOX_OBSIDIAN_PATH > $MOUNT_POINT/logs/rclone-sync.log 2>&1" >> $CRON_USER_PATH
+echo "*/30 * * * * /usr/bin/rclone sync "$SYNCTHING_OBSIDIAN_PATH" $RCLONE_DROPBOX_OBSIDIAN_PATH > $MOUNT_POINT/logs/rclone-sync.log 2>&1" >> $CRON_USER_PATH
 echo "0 5 * * 0 $HOME/workspace/rasp_postinstall/backup.sh > $MOUNT_POINT/logs/backup.sh.log 2>&1" >> $CRON_USER_PATH
 echo "0 5 * * * docker exec pihole pihole enable" >> $CRON_USER_PATH
 echo "0 13 * * * docker exec pihole pihole disable" >> $CRON_USER_PATH
