@@ -105,9 +105,6 @@ echo -n "RESTIC_REPOSITORY: "
 read RESTIC_REPOSITORY
 export RESTIC_REPOSITORY="$RESTIC_REPOSITORY"
 
-restic snapshots
-exit 1
-
 clear
 
 # Restaura o backup
