@@ -11,7 +11,8 @@ CRON_USER_PATH=/var/spool/cron/crontabs/$REGULAR_USER_NAME
 LUKS_FILE="$HOME/.encrypted"
 LUKS_NAME="encrypted_volume"
 MOUNT_POINT="$HOME/encrypted"
-RCLONE_CONFIG_FILE="$MOUNT_POINT/.config/rclone/rclone.conf"
+RCLONE_CONFIG_PATH="$MOUNT_POINT/.config/rclone/"
+RCLONE_CONFIG_FILE="$RCLONE_CONFIG_PATH/rclone.conf"
 
 # Função para executar comandos como o usuário regular
 user_do() {
@@ -87,8 +88,9 @@ mkfs.ext4 "/dev/mapper/$LUKS_NAME"
 mkdir -p "$MOUNT_POINT"
 mount "/dev/mapper/$LUKS_NAME" "$MOUNT_POINT"
 
-# Cria pastas para containers docker
+# Cria pastas
 mkdir -p $MOUNT_POINT/Vídeos
+mkdir -p $RCLONE_CONFIG_PATH
 
 echo "Por favor, cole o conteúdo completo do seu rclone.conf abaixo."
 echo "Quando terminar, pressione Ctrl+D para continuar."
