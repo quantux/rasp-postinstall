@@ -8,9 +8,11 @@ REGULAR_USER_NAME="${SUDO_USER:-$LOGNAME}"
 HOME=/home/$REGULAR_USER_NAME
 CRON_ROOT_PATH=/var/spool/cron/crontabs/root
 CRON_USER_PATH=/var/spool/cron/crontabs/$REGULAR_USER_NAME
+LUKS_FILE="$HOME/.encrypted"
+LUKS_NAME="encrypted_volume"
 
 echo -n "Caminho para a chave LUKS: "
-read LUKS_PATH
+read LUKS_KEY_FOLDER
 
 # Rejeita se não for um diretório existente
 if [ ! -d "$LUKS_PATH" ]; then
@@ -18,7 +20,7 @@ if [ ! -d "$LUKS_PATH" ]; then
     exit 1
 fi
 
-LUKS_FILE="$LUKS_PATH/.enc"
+KEY_FILE="$LUKS_KEY_FOLDER/.enc"
 
 clear
 
@@ -86,7 +88,7 @@ dd if=/dev/zero of="$LUKS_FILE" bs=1 count=0 seek="$FILE_SIZE"
 # Formata e monta volume LUKS
 cryptsetup luksFormat "$LUKS_FILE" "$KEY_FILE"
 echo "/dev/mapper/$LUKS_NAME $MOUNT_POINT ext4 defaults,nofail 0 2" >> /etc/fstab
-echo "$LUKS_NAME   $HOME/.encrypted   $KEY_FILE   luks,noauto,nofail" >> /etc/crypttab
+echo "$LUKS_NAME   $LUKS_FILE   $KEY_FILE   luks,noauto,nofail" >> /etc/crypttab
 cryptsetup luksOpen "$LUKS_FILE" "$LUKS_NAME" --key-file "$KEY_FILE"
 mkfs.ext4 "/dev/mapper/$LUKS_NAME"
 mkdir -p "$MOUNT_POINT"
@@ -107,15 +109,20 @@ fi
 
 # Carrega as variáveis do .env
 source "$DOTENV"
-ENCRYPTION_PASSWORD="$ENCRYPTION_PASSWORD"
-KEY_FILE="$KEY_FILE"
+export RESTIC_PASSWORD
+export RESTIC_REPOSITORY
 MOUNT_POINT="$MOUNT_POINT"
-LUKS_NAME="$LUKS_NAME"
-DOCKER_COMPOSE_PATH="$DOCKER_COMPOSE_PATH"
 GIT_NAME="$GIT_NAME"
 GIT_EMAIL="$GIT_EMAIL"
 GIT_CREDENTIALS_PATH="$GIT_CREDENTIALS_PATH"
+DOCKER_COMPOSE_PATH="$DOCKER_COMPOSE_PATH"
 DROPBOX_OBSIDIAN_PATH="$DROPBOX_OBSIDIAN_PATH"
+
+# Restaura o backup
+restic restore latest \
+    --target / \
+    --tag mths \
+    --tag raspberry_pi
 
 # Clona repositórios
 git clone https://github.com/quantux/convert_to_jellyfin $HOME/workspace/convert_to_jellyfin
