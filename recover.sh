@@ -13,6 +13,11 @@ LUKS_NAME="encrypted_volume"
 MOUNT_POINT="$HOME/encrypted"
 RCLONE_CONFIG_FILE="$MOUNT_POINT/.config/rclone/rclone.conf"
 
+# Função para executar comandos como o usuário regular
+user_do() {
+    su - ${REGULAR_USER_NAME} -c "/bin/zsh --login -c '$1'"
+}
+
 echo -n "Caminho para a chave LUKS: "
 read LUKS_KEY_FOLDER
 
@@ -26,10 +31,17 @@ KEY_FILE="$LUKS_KEY_FOLDER/.enc"
 
 clear
 
-# Função para executar comandos como o usuário regular
-user_do() {
-    su - ${REGULAR_USER_NAME} -c "/bin/zsh --login -c '$1'"
-}
+echo "Por favor, cole o conteúdo completo do seu rclone.conf abaixo."
+echo "Quando terminar, pressione Ctrl+D para continuar."
+echo ">>>"
+
+cat > "$RCLONE_CONFIG_FILE"
+export RCLONE_CONFIG="$RCLONE_CONFIG_FILE"
+
+restic snapshots
+
+exit 1
+clear
 
 # Instala os pacotes necessários
 apt-get update
@@ -89,18 +101,6 @@ mount "/dev/mapper/$LUKS_NAME" "$MOUNT_POINT"
 
 # Cria pastas para containers docker
 mkdir -p $MOUNT_POINT/Vídeos
-
-echo "Por favor, cole o conteúdo completo do seu rclone.conf abaixo."
-echo "Quando terminar, pressione Ctrl+D para continuar."
-echo ">>>"
-
-cat > "$RCLONE_CONFIG_FILE"
-export RCLONE_CONFIG="$RCLONE_CONFIG_FILE"
-
-restic snapshots
-
-exit 1
-clear
 
 # Restaura o backup
 restic restore latest \
