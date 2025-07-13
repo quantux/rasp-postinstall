@@ -15,7 +15,7 @@ echo -n "Caminho para a chave LUKS: "
 read LUKS_KEY_FOLDER
 
 # Rejeita se não for um diretório existente
-if [ ! -d "$LUKS_PATH" ]; then
+if [ ! -d "$LUKS_KEY_FOLDER" ]; then
     echo "Erro: o caminho não é um diretório existente."
     exit 1
 fi
