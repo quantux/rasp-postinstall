@@ -131,6 +131,13 @@ DOCKER_COMPOSE_PATH="$DOCKER_COMPOSE_PATH"
 RCLONE_DROPBOX_OBSIDIAN_PATH="$RCLONE_DROPBOX_OBSIDIAN_PATH"
 SYNCTHING_OBSIDIAN_PATH="$SYNCTHING_OBSIDIAN_PATH"
 
+# Configura swap
+dd if=/dev/zero of="$MOUNT_POINT/.swap" bs=1M count=4096 status=progress
+chmod 600 "$MOUNT_POINT/.swap"
+mkswap "$MOUNT_POINT/.swap"
+swapon "$MOUNT_POINT/.swap"
+echo "$MOUNT_POINT/.swap none swap sw 0 0" | sudo tee -a "/etc/fstab"
+
 # Clona repositórios
 git clone https://github.com/quantux/convert_to_jellyfin $HOME/workspace/convert_to_jellyfin
 git clone https://github.com/quantux/rpi-check-connection $HOME/workspace/rpi-check-connection
