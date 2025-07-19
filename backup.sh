@@ -24,7 +24,7 @@ export RESTIC_REPOSITORY
 DOCKER_COMPOSE_PATH="$DOCKER_COMPOSE_PATH"
 
 # Pause containers
-docker-compose -f "$DOCKER_COMPOSE_PATH" pause
+docker compose -f "$DOCKER_COMPOSE_PATH" down
 
 # Backup wifi networks
 cat /etc/NetworkManager/system-connections/preconfigured.nmconnection > "$HOME/encrypted/.preconfigured.nmconnection"
@@ -36,7 +36,7 @@ restic backup "$HOME/encrypted" \
     --tag raspberry_pi
 
 # Unpause containers
-docker-compose -f "$DOCKER_COMPOSE_PATH" unpause
+docker compose -f "$DOCKER_COMPOSE_PATH" up -d
 
 # Política de retenção
 restic forget \

@@ -37,8 +37,6 @@ apt-get update
 apt-get install -y \
   restic \
   python3-pip \
-  docker.io \
-  docker-compose \
   apt-utils \
   iptables-persistent \
   build-essential \
@@ -154,13 +152,35 @@ user_do "git config --global credential.helper \"store --file=$GIT_CREDENTIALS_P
 user_do "asdf set -u nodejs latest"
 
 # Docker
-usermod -aG docker $REGULAR_USER_NAME
+# Remove pacotes antigos relacionados ao Docker
+for pkg in docker.io docker-doc docker-compose podman-docker containerd runc; do 
+    apt-get remove -y "$pkg"
+done
+
+# Cria diretório para chave GPG do Docker
+install -m 0755 -d /etc/apt/keyrings
+
+# Baixa a chave GPG do Docker
+curl -fsSL https://download.docker.com/linux/debian/gpg -o /etc/apt/keyrings/docker.asc
+chmod a+r /etc/apt/keyrings/docker.asc
+
+# Adiciona o repositório oficial do Docker
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] \
+https://download.docker.com/linux/debian $(. /etc/os-release && echo "$VERSION_CODENAME") stable" \
+> /etc/apt/sources.list.d/docker.list
+
+# Atualiza repositórios e instala pacotes Docker
+apt-get update
+apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+
+# Adiciona usuário ao grupo docker
+usermod -aG docker "${SUDO_USER:-$USER}"
 
 # rclone
 rm -rf "$MOUNT_POINT/Syncthing/Obsidian"
 mkdir -p "$MOUNT_POINT/Syncthing/Obsidian"
 /usr/bin/rclone sync "$RCLONE_DROPBOX_OBSIDIAN_PATH" "$SYNCTHING_OBSIDIAN_PATH" --progress
-docker-compose -f "$DOCKER_COMPOSE_PATH" up -d
+docker compose -f "$DOCKER_COMPOSE_PATH" up -d
 
 # Crontabs
 echo "@reboot $HOME/workspace/rpi-check-connection/rpi-check-connection.sh" >> $CRON_ROOT_PATH
