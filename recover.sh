@@ -107,17 +107,10 @@ ln -s "$RCLONE_CUSTOM_CONFIG_FILE" "$RCLONE_DEFAULT_CONFIG_FILE"
 
 clear
 
-echo -n "RESTIC_REPOSITORY: "
-read RESTIC_REPOSITORY
-export RESTIC_REPOSITORY="$RESTIC_REPOSITORY"
-
-clear
-
 # Restaura o backup
-restic restore latest \
-    --target / \
-    --tag mths \
-    --tag raspberry_pi
+restic -r rclone:gdrive:/restic_raspberry_repo \
+    restore latest \
+    --target /
 
 # Verifica se o .env foi restaurado
 DOTENV="$MOUNT_POINT/.env"
