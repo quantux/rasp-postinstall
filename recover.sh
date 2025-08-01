@@ -108,7 +108,7 @@ ln -s "$RCLONE_CUSTOM_CONFIG_FILE" "$RCLONE_DEFAULT_CONFIG_FILE"
 clear
 
 # Restaura o backup
-restic -r rclone:gdrive:/restic_raspberry_repo \
+restic -r rclone:gdrive:/restic_raspberry_pi_repo \
     restore latest \
     --target /
 
