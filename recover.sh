@@ -11,8 +11,10 @@ CRON_USER_PATH=/var/spool/cron/crontabs/$REGULAR_USER_NAME
 LUKS_FILE="$HOME/.encrypted"
 LUKS_NAME="encrypted_volume"
 MOUNT_POINT="$HOME/encrypted"
-RCLONE_CONFIG_PATH="$MOUNT_POINT/.config/rclone/"
-RCLONE_CONFIG_FILE="$RCLONE_CONFIG_PATH/rclone.conf"
+RCLONE_DEFAULT_CONFIG_PATH="$HOME/.config/rclone/"
+RCLONE_DEFAULT_CONFIG_FILE="$HOME/.config/rclone/"
+RCLONE_CUSTOM_CONFIG_PATH="$MOUNT_POINT/.config/rclone/"
+RCLONE_CUSTOM_CONFIG_FILE="$RCLONE_CUSTOM_CONFIG_PATH/rclone.conf"
 
 # Função para executar comandos como o usuário regular
 user_do() {
@@ -88,14 +90,20 @@ mount "/dev/mapper/$LUKS_NAME" "$MOUNT_POINT"
 
 # Cria pastas
 mkdir -p $MOUNT_POINT/Vídeos
-mkdir -p $RCLONE_CONFIG_PATH
+mkdir -p $RCLONE_CUSTOM_CONFIG_PATH
+mkdir -p $RCLONE_DEFAULT_CONFIG_PATH
+
+clear
 
 echo "Cole o conteúdo completo do seu rclone.conf abaixo."
 echo "Quando terminar, pressione Ctrl+D para continuar."
 echo ">>>"
 
-cat > "$RCLONE_CONFIG_FILE"
-export RCLONE_CONFIG="$RCLONE_CONFIG_FILE"
+cat > "$RCLONE_CUSTOM_CONFIG_FILE"
+
+# Cria links simbólicos
+ln -s "$MOUNT_POINT/.zshrc" "$HOME/.zshrc"
+ln -s "$RCLONE_CUSTOM_CONFIG_FILE" "$RCLONE_DEFAULT_CONFIG_FILE"
 
 clear
 
@@ -110,10 +118,6 @@ restic restore latest \
     --target / \
     --tag mths \
     --tag raspberry_pi
-
-# Cria links simbólicos
-ln -s "$MOUNT_POINT/.zshrc" "$HOME/.zshrc"
-ln -s "$RCLONE_CONFIG_FILE" "$HOME/.config/rclone/rclone.conf"
 
 # Verifica se o .env foi restaurado
 DOTENV="$MOUNT_POINT/.env"
